@@ -172,17 +172,49 @@ void sendinput_kb(int vkey, bool down)
 {
   INPUT ip;
 
-  // Set up a generic keyboard event.
-  ip.type = INPUT_KEYBOARD;
-  ip.ki.wScan = 0;
-  //ip.ki.wScan = MapVirtualKey(vkey, MAPVK_VK_TO_VSC);
-  ip.ki.time = 0;
-  ip.ki.dwExtraInfo = 0;
+  if(vkey >= VK_LBUTTON && vkey <= VK_XBUTTON2 && vkey != VK_CANCEL) // mouse buttons
+  {
+      ip.type = INPUT_MOUSE;
+      ip.mi.dx = ip.mi.dy = 0;
+      ip.mi.mouseData = 0;
+      ip.mi.dwFlags = 0;
+      ip.mi.time = 0;
+      ip.mi.dwExtraInfo = 0;
+      switch(vkey)
+      {
+      case VK_XBUTTON1:
+          ip.mi.dwFlags = MOUSEEVENTF_XDOWN << (!down);
+          ip.mi.mouseData = XBUTTON1;
+          break;
+      case VK_XBUTTON2:
+          ip.mi.dwFlags = MOUSEEVENTF_XDOWN << (!down);
+          ip.mi.mouseData = XBUTTON2;
+          break;
+      case VK_LBUTTON:
+          ip.mi.dwFlags = MOUSEEVENTF_LEFTDOWN << (!down);
+          break;
+      case VK_RBUTTON:
+          ip.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN << (!down);
+          break;
+      case VK_MBUTTON:
+          ip.mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN << (!down);
+          break;
+      }
+  }
+  else
+  {
+      // Set up a generic keyboard event.
+      ip.type = INPUT_KEYBOARD;
+      ip.ki.wScan = 0;
+      //ip.ki.wScan = MapVirtualKey(vkey, MAPVK_VK_TO_VSC);
+      ip.ki.time = 0;
+      ip.ki.dwExtraInfo = 0;
 
-  ip.ki.wVk = vkey;
-  ip.ki.dwFlags = 0; // 0 for key press
-  if(!down)
-    ip.ki.dwFlags |= KEYEVENTF_KEYUP;
+      ip.ki.wVk = vkey;
+      ip.ki.dwFlags = 0; // 0 for key press
+      if(!down)
+          ip.ki.dwFlags |= KEYEVENTF_KEYUP;
+  }
   SendInput(1, &ip, sizeof(INPUT));
 }
 
@@ -195,7 +227,7 @@ void sendinput_mouse(unsigned int type, int32_t m)
     ip.mi.mouseData = 0;
     ip.mi.dwFlags = 0;
     ip.mi.time = 0;
-    ip.ki.dwExtraInfo = 0;
+    ip.mi.dwExtraInfo = 0;
 
 
     switch(type)
