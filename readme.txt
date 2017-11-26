@@ -1,7 +1,7 @@
 This driver allows you to setup Spaceball either as a 6-axis joystick (via vJoy: http://vjoystick.sourceforge.net/site/ ) or as a mouse.
 
 Usage:
-driver.exe [settings file]
+driver.exe [--hide] [settings file]
 
 
 
