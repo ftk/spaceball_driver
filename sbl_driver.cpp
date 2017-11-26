@@ -35,7 +35,14 @@ int main(int argc, const char * argv[])
   int keybinds[12] = {0};
   int mousebinds[6] = {0};
 
-  FILE * fp = fopen(argc > 1 ? argv[1] : "settings.txt", "r");
+  int arg = 1;
+  if(stricmp(argv[arg], "--hide") == 0)
+  {
+    FreeConsole();
+    arg++;
+  }
+
+  FILE * fp = fopen(argc > 1 ? argv[arg] : "settings.txt", "r");
   if(fp)
   {
     fscanf(fp, "%d", &js_id); // js number (1)
