@@ -1,0 +1,30 @@
+Install as mouse:
+1. Run driver_kbm.exe, it should work with default settings. See readme.txt for settings description.
+
+Install as a joystick:
+1. Download and install vJoy: https://sourceforge.net/projects/vjoystick/files/latest/download
+2. Open vJoyConf, make sure only axes X,Y,Z,RX,RY,RZ are enabled and there are 12 buttons on vJoy device #1. Press Apply.
+3. Paste the following into your settings.txt file:
+
+1
+COM1
+
+10 4d 0d 59 43 0d 41 44 0d 42 0d
+
+25 0 0 0 0 0
+0 25 0 0 0 0
+0 0 25 0 0 0
+0 0 0 45 0 0
+0 0 0 0 45 0
+0 0 0 0 0 45
+
+4. Launch driver.exe
+5. You can configure sensitivity for each axis by tweaking the numbers on matrix' diagonal.
+
+
+Install as gamepad (advanced):
+1. Configure as joystick first.
+2. Download x360ce (x64): https://github.com/x360ce/x360ce#download
+3. Download ViGEm Bus Driver and VDX from https://downloads.vigem.org/
+4. Download devcon.exe (https://superuser.com/a/1099688) and install viGEm Bus Driver by following these instructions: https://github.com/nefarius/ViGEm/tree/master/Sys/ViGEmBus
+5. Configure x360ce and then follow instructions here: https://github.com/nefarius/ViGEm/tree/master/Src/Samples/VDX
