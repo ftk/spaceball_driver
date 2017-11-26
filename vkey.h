@@ -5,8 +5,10 @@
 
 int get_vkey(const char * str)
 {
+  if(!*str)
+    return 0;
 
-
+// CHECK_VKEY(VK_LBUTTON) -> if(stricmp(str, "LBUTTON") == 0) return VK_LBUTTON;
 #define CHECK_VKEY(k) \
   if(stricmp(str, 3 + #k) == 0) return k;
 
@@ -188,7 +190,6 @@ void sendinput_mouse(unsigned int type, int32_t m)
 {
     INPUT ip;
 
-    // Set up a generic keyboard event.
     ip.type = INPUT_MOUSE;
     ip.mi.dx = ip.mi.dy = 0;
     ip.mi.mouseData = 0;
