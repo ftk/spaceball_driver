@@ -5,19 +5,38 @@ namespace sbl {
 
 static HANDLE port;
 
+void clear_error()
+{
+  DWORD errors;
+  COMSTAT stat;
+  ClearCommError(port, &errors, &stat);
+  if(errors)
+    printf("commerror: %x\n", errors);
+}
+
 int read(char * buf, int size)
 {
   DWORD num = size;
-  int ok = ReadFile( port, buf,  size, &num, NULL);
-  assert(ok);
+  int ok = ReadFile(port, buf, size, &num, NULL);
+  //assert(ok);
+  if(!ok)
+  {
+    clear_error();
+    return 0;
+  }
   return num;
 }
 
 int write(const char * buf, int size)
 {
   DWORD num = size;
-  int ok = WriteFile( port, buf,  size, &num, NULL);
-  assert(ok);
+  int ok = WriteFile(port, buf, size, &num, NULL);
+  //assert(ok);
+  if(!ok)
+  {
+    clear_error();
+    return write(buf, size);
+  }
   return num;
 }
 
@@ -38,35 +57,71 @@ struct handle {
 };
 
 
-void setup(const char * comport)
+void setup(const char * comport, int update = 100)
 {
   port = CreateFile(comport, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0,NULL);
 
   assert(port != INVALID_HANDLE_VALUE);
 
-  DCB dcb = {0};
-  dcb.DCBlength = sizeof(DCB);
-
-  if (!::GetCommState (port,&dcb))
+  if(!::SetupComm(port, 16, 16))
   {
-    printf ( "Failed to Get Comm State Reason:%d",GetLastError());
+    printf("Failed to SetupComm (%d)", GetLastError());
     exit(1);
   }
+
+  DCB dcb;
+  memset(&dcb, 0, sizeof(dcb));
+  dcb.DCBlength = sizeof(dcb);
+
+  /*if(!::GetCommState(port, &dcb))
+  {
+    printf("Failed to Get Comm State (%d)", GetLastError());
+    exit(1);
+    }*/
 
   dcb.BaudRate  = CBR_9600;
   dcb.ByteSize  = 8;
-  dcb.Parity    = 0;
+  dcb.Parity    = NOPARITY;
+  dcb.fBinary   = 1;
   dcb.StopBits  = ONESTOPBIT;
+  dcb.fInX = 1;
+  dcb.fOutX = 1;
+  dcb.XonChar = 0x11;
+  dcb.XoffChar = 0x13;
+  dcb.XonLim = 16;
+  dcb.XoffLim = 16;
+  dcb.fDtrControl = DTR_CONTROL_ENABLE;
+  dcb.fRtsControl = RTS_CONTROL_ENABLE;
+  dcb.fAbortOnError = 1;
 
 
-  if (!::SetCommState (port,&dcb))
+  if (!::SetCommState(port, &dcb))
   {
-    printf ( "Failed to Set Comm State Reason:%d",GetLastError());
+    printf("Failed to Set Comm State (%d)\n", GetLastError());
     exit(1);
   }
-  fflush(stdout);
 
-  Sleep(2000);
+  COMMTIMEOUTS timeout;
+  // read will return as soon as possible
+  timeout.ReadIntervalTimeout = MAXDWORD;
+  timeout.ReadTotalTimeoutMultiplier = MAXDWORD;
+  timeout.ReadTotalTimeoutConstant = update; // wait at most (update) ms for data, then return
+
+  timeout.WriteTotalTimeoutMultiplier = 0;
+  timeout.WriteTotalTimeoutConstant = 0;
+
+
+  if(!::SetCommTimeouts(port, &timeout))
+  {
+    printf("Failed to SetCommTimeouts (%d)\n", GetLastError());
+    exit(1);
+  }
+
+  Sleep(1500);
+
+  PurgeComm(port, PURGE_RXCLEAR | PURGE_TXCLEAR);
+  clear_error();
+
 
   //write("M\r", 2); //set mode
   //write("YC\r", 3); //?
@@ -79,11 +134,12 @@ void close()
   CloseHandle(port);
 }
 
-int update(handle * handle) {
-  int i, j, num, packs;
-  char rawbuf[1024];
+int update(handle * handle)
+{
+  int i, j, num, packs = 0;
+  char rawbuf[32];
 
-  num = read(rawbuf, 1023);
+  num = read(rawbuf, sizeof(rawbuf));
 
   if (num > 0) {
     for (i=0; i<num; i++) {
@@ -235,7 +291,6 @@ int update(handle * handle) {
       for(int i = 0; i < handle->packlen - 1; i++)
         printf("%02x", handle->buf[1 + i]);
       printf("\n");
-      fflush(stdout);
 #endif
       switch (handle->packtype)
       {
