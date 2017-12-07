@@ -42,9 +42,9 @@ int write(const char * buf, int size)
 
 struct handle {
   unsigned char buf[256] = {0};
-  int bufpos=0;        /* current char position in packet buffer */
+  unsigned int bufpos=0;        /* current char position in packet buffer */
   int packtype=0;      /* what kind of packet is it */
-  int packlen=1;       /* how many bytes do we ultimately expect? */
+  unsigned int packlen=1;       /* how many bytes do we ultimately expect? */
   int escapedchar=0;   /* if set, we're processing an escape sequence */
   int erroroccured=0;  /* if set, we've received an error packet or packets */
   int resetoccured=0;  /* if set, ball was reset, so have to reinitialize it */
@@ -52,8 +52,8 @@ struct handle {
   int leftymode4000=0; /* if set, Spaceball 4000 in "lefty" orientation */
   int trans[3]={0};      /* last translational data received */
   int rot[3]={0};        /* last rotational data received */
-  int buttons=0;       /* current button status */
-  int timer=0;         /* time since last packet was received */
+  unsigned int buttons=0;       /* current button status */
+  unsigned int timer=0;         /* time since last packet was received */
 };
 
 
@@ -90,8 +90,12 @@ void setup(const char * comport, int update = 100)
   dcb.XoffChar = 0x13;
   dcb.XonLim = 16;
   dcb.XoffLim = 16;
-  dcb.fDtrControl = DTR_CONTROL_ENABLE;
-  dcb.fRtsControl = RTS_CONTROL_ENABLE;
+  dcb.fDtrControl = DTR_CONTROL_HANDSHAKE;
+  dcb.fOutxCtsFlow = 1;
+  dcb.fRtsControl = RTS_CONTROL_HANDSHAKE;
+  dcb.fOutxDsrFlow = 1;
+  dcb.fDsrSensitivity = 1;
+  dcb.EofChar = '\r';
   dcb.fAbortOnError = 1;
 
 
@@ -119,7 +123,7 @@ void setup(const char * comport, int update = 100)
 
   Sleep(1500);
 
-  PurgeComm(port, PURGE_RXCLEAR | PURGE_TXCLEAR);
+  PurgeComm(port, PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
   clear_error();
 
 
@@ -134,9 +138,9 @@ void close()
   CloseHandle(port);
 }
 
-int update(handle * handle)
+unsigned int update(handle * handle)
 {
-  int i, j, num, packs = 0;
+  unsigned int i, j, num, packs = 0;
   char rawbuf[32];
 
   num = read(rawbuf, sizeof(rawbuf));
@@ -175,6 +179,8 @@ int update(handle * handle)
             printf(" (unprintable)");
           printf("\n");
 #endif
+          // ignore escape, push ^ before current symbol
+          handle->buf[handle->bufpos++] = '^';
           break;
         }
       }
@@ -404,7 +410,7 @@ int update(handle * handle)
         /* the device, and assume that its completely schizophrenic */
         /* at this moment, we must reset it again at this point     */
         handle->resetoccured=1;
-        write("@\r", 2);
+        //write("@\r", 2);
         break;
 
 
