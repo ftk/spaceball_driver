@@ -5,13 +5,27 @@ namespace sbl {
 
 static HANDLE port;
 
+static char initstr[512] = "M\rYC\rAD\r";
+static unsigned initlen=8;
+
+int write(const char * buf, int size);
+
 void clear_error()
 {
   DWORD errors;
   COMSTAT stat;
   ClearCommError(port, &errors, &stat);
   if(errors)
+  {
     printf("commerror: %x\n", errors);
+    if(errors & CE_BREAK)
+    {
+      // reinitialize
+      Sleep(500);
+      write(initstr, initlen);
+      Sleep(100);
+    }
+  }
 }
 
 int read(char * buf, int size)

@@ -93,15 +93,14 @@ bool vjoy_update(unsigned js_id, const float row[6], unsigned buttons)
 {
   js.bDevice = js_id;
 
-  js.wAxisX = row[0] + 0x4000;
-  js.wAxisY = row[1] + 0x4000;
-  js.wAxisZ = row[2] + 0x4000;
-  js.wAxisXRot = row[3] + 0x4000;
-  js.wAxisYRot = row[4] + 0x4000;
-  js.wAxisZRot = row[5] + 0x4000;
+  js.wAxisX = row[0] * 0x4000 + 0x4000;
+  js.wAxisY = row[1] * 0x4000 + 0x4000;
+  js.wAxisZ = row[2] * 0x4000 + 0x4000;
+  js.wAxisXRot = row[3] * 0x4000 + 0x4000;
+  js.wAxisYRot = row[4] * 0x4000 + 0x4000;
+  js.wAxisZRot = row[5] * 0x4000 + 0x4000;
 
   js.lButtons = buttons;
-
 
   return UpdateVJD(js_id, &js);
 }
@@ -118,6 +117,7 @@ bool vjoy_update(unsigned js_id, const float row[6], unsigned buttons)
 void vjoy_close(unsigned js_id)
 {
 #ifndef NO_VJOY
+  ResetVJD(js_id);
   RelinquishVJD(js_id);
 #endif
 }
