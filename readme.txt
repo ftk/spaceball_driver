@@ -11,13 +11,15 @@ settings.txt:
 (string) - COM port name connected to Spaceball
 (integer) (hex string)... - Initialization string sent to Spaceball  ( old protocol spec: http://spacemice.org/pdf/SpaceBall_2003-3003_Protocol.pdf )
 
-(36 integers) - Linear input sensitivity matrix
+(6 * 3 numbers) - Min, max and gamma for each axis
 
-(6 integers) - Offset for each axis
+(6 * 6 numbers) - Linear input sensitivity matrix
 
-(12 strings) - Key names to which 12 buttons are bound to
+(6 numbers) - Offset for each axis
 
-(6 integers) - Mouse mode for each axis:
+(12 strings) - Key names to which 12 buttons are bound to (1-9 and A,B,C)
+
+(6 * 2) - Mouse mode and sensitivity for each axis:
 0 - disabled
 1 - horizontal mouse movement
 2 - vertical mouse movement
