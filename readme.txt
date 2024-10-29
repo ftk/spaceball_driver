@@ -3,6 +3,7 @@ This driver allows you to setup Spaceball either as a 6-axis joystick (via vJoy:
 Related projects:
 http://jedi.ks.uiuc.edu/~johns/projects/libsball/
 https://github.com/rbsriobr/SBW
+https://github.com/FreeSpacenav/spacenavd + https://gist.github.com/ftk/0d70e527c05cc7c7d25bd57019a829a9 (setup spaceball as a mouse in linux)
 
 Usage:
 driver.exe [--hide] [settings file]
